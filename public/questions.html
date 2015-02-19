@@ -1,0 +1,69 @@
+<html>
+<head>
+    <title>Selamat Datang</title>
+    <link rel="stylesheet" href="stylesheets/bootstrap.min.css">
+    <script src="javascripts/jquery-2.1.3.min.js"></script>
+    <script src="javascripts/angular.min.js"></script>
+</head>
+<body ng-app="ngAppStrictDemo" ng-controller="control">
+
+<div class="container">
+    <h1>
+        Welcome :)
+    </h1>
+    <div class="row">
+    <button class="btn btn-success" ng-click="editQuestion('new')">
+        <span class="glyphicon glyphicon-plus"></span> Add question
+    </button>
+        </div>
+    <div class="row">
+    <div class="col-lg-8">
+    <table class="table table-striped">
+        <thead><tr>
+            <th>Edit</th>
+            <th>Question</th>
+            <th>Answer</th>
+        </tr></thead>
+        <tbody>
+        <tr ng-repeat="x in questions">
+            <td>
+                <button class="btn btn-primary" ng-click="editQuestion(x.id)">
+                    <span class="glyphicon glyphicon-pencil"></span>&nbsp;&nbsp;Edit
+                </button>
+            </td>
+            <td>{{ x.question }}</td>
+            <td>{{ x.answer }}</td>
+        </tr>
+        </tbody>
+    </table>
+    </div>
+
+    <div class="col-lg-4">
+    <h3 ng-show="edit">Add Question:</h3>
+    <h3 ng-hide="edit">Edit Question:</h3>
+
+    <form class="form-horizontal">
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Question:</label>
+            <div class="col-sm-8">
+                <input type="text" ng-model="input_question" ng-disabled="!edit" placeholder="Question">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4 control-label">Answer:</label>
+            <div class="col-sm-8">
+                <input type="text" ng-model="input_answer" ng-disabled="!edit" placeholder="Answer">
+            </div>
+        </div>
+    </form>
+
+    <hr>
+    <button class="btn btn-success" ng-disabled="incomplete" ng-click="saveQuestion()">
+        <span class="glyphicon glyphicon-save"></span> Save Changes
+    </button>
+    </div>
+    </div>
+</div>
+<script src="javascripts/questions.js"></script>
+</body>
+</html>

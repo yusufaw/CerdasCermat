@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<form id="form_register">
+    <input type="text" id="usrname" name="usrname"/>
+    <input type="button" id="button_register" name="button_register" value="Daftar"/>
+</form>
+<div id="panel_soal" style="display: none">
+    <h3>Soal</h3><br>
+    <h5 id="jml_ol">0</h5>
+    <label id="pertanyaan"></label>
+    <input type="text" id="jawaban" />
+    <button id="button_jawan">Jawab</button>
+</div>
+
+<script src="js/jquery-1.11.1.js"></script>
+<script src="http://localhost:3000/javascripts/socket.io-client/socket.io.js"></script>
+<script src="gameClient.js"></script>
+</body>
+</html>
