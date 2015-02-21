@@ -6,13 +6,12 @@ var Question = require('../models/question');
 var express = require('express');
 var router = express.Router();
 
-router.route('/questions')
+router.route('/')
     .get(function(req, res) {
         Question.find(function(err, questions) {
             if (err) {
                 return res.send(err);
             }
-
             res.json(questions);
         });
     })
@@ -28,7 +27,7 @@ router.route('/questions')
         });
     });
 
-router.route('/questions/:id').put(function(req,res){
+router.route('/:id').put(function(req,res){
     Question.findOne({ _id: req.params.id }, function(err, question) {
         if (err) {
             return res.send(err);
@@ -49,7 +48,7 @@ router.route('/questions/:id').put(function(req,res){
     });
 });
 
-router.route('/questions/:id').get(function(req, res) {
+router.route('/:id').get(function(req, res) {
     Question.findOne({ _id: req.params.id}, function(err, question) {
         if (err) {
             return res.send(err);
@@ -59,7 +58,7 @@ router.route('/questions/:id').get(function(req, res) {
     });
 });
 
-router.route('/questions/:id').delete(function(req, res) {
+router.route('/:id').delete(function(req, res) {
     Question.remove({
         _id: req.params.id
     }, function(err, question) {

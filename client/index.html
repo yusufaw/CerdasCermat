@@ -4,11 +4,26 @@
     <meta charset="UTF-8">
     <title></title>
 </head>
-<body>
+<body ng-app="AppGame" ng-controller="control">
+<div ng-show="register">
+    <h1>Register</h1>
 <form id="form_register">
-    <input type="text" id="usrname" name="usrname"/>
+    <input type="text" ng-model="username_register" id="usrname" name="usrname" placeholder="username"/>
+    <input type="password" ng-model="password1_register" placeholder="password" />
+    <input type="password" ng-model="password2_register" placeholder="password" />
     <input type="button" id="button_register" name="button_register" value="Daftar"/>
 </form>
+    <button ng-click="toLogin()">Login</button>
+</div>
+<div ng-show="login">
+    <h1>Login</h1>
+    <form>
+    <input type="text" id="usrname" name="usrname" ng-model="username_login" placeholder="username"/>
+    <input type="password" id="passwd" ng-model="password_login" placeholder="password" />
+    <input type="button" id="button_register" name="button_register" value="Masuk"/>
+</form>
+    <button ng-click="toRegister()">Register</button>
+</div>
 <div id="panel_soal" style="display: none">
     <h3>Soal</h3><br>
     <h5 id="jml_ol">0</h5>
@@ -18,7 +33,8 @@
 </div>
 
 <script src="js/jquery-1.11.1.js"></script>
+<script src="js/angular.min.js"></script>
 <script src="http://localhost:3000/javascripts/socket.io-client/socket.io.js"></script>
-<script src="gameClient.js"></script>
+<script src="js/game.js"></script>
 </body>
 </html>

@@ -9,11 +9,22 @@ var routes = require('./routes/index');
 var usersRoute = require('./routes/users');
 var questionsRoute = require('./routes/questions');
 
+var cors = require('cors');
+//CORS middleware
+var allowCrossDomain = function(req, res, next) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+
+    next();
+}
+
 var app = express();
+//app.use(cors);
 app.use(bodyParser.urlencoded({
     extended: true
 }));
-
+app.use(allowCrossDomain);
 app.use(bodyParser.json());
 var dbName = 'CerdasCermat';
 var connectionString = 'mongodb://localhost:27017/'+ dbName;
@@ -28,27 +39,12 @@ mongoose.connect(connectionString, function(err){
 });
 
 
-//var userSchema = mongoose.Schema({
-//    username: String,
-//    password: String,
-//    registered:{
-//        type: Date, default: Date.now
-//    }
-//});
-
-//var User = mongoose.model('User', userSchema);
 var User = require('./models/user');
 var user = new User({
     username: 'ucup',
     password: 'wkwk'
 });
-//
-//var soalSchema = mongoose.Schema({
-//    question: String,
-//    answer: String
-//});
-//var Soal = mongoose.model('Question', soalSchema);
-//var soal = new Soal({question: 'What s ur name?', answer:'Yusuf'});
+
 var Soal = require('./models/question');
 
 // view engine setup
@@ -64,9 +60,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
-app.use('/users', usersRoute);
-app.use('/api', questionsRoute);
-
+app.use('/api/user', usersRoute);
+app.use('/api/question', questionsRoute);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -80,7 +75,7 @@ app.use(function(req, res, next) {
 // development error handler
 // will print stacktrace
 if (app.get('env') === 'development') {
-    app.use(function(err, req, res, next) {
+    app.use(function(err, req, res) {
         res.status(err.status || 500);
         res.render('error', {
             message: err.message,
@@ -91,7 +86,7 @@ if (app.get('env') === 'development') {
 
 // production error handler
 // no stacktraces leaked to user
-app.use(function(err, req, res, next) {
+app.use(function(err, req, res) {
     res.status(err.status || 500);
     res.render('error', {
         message: err.message,
@@ -110,6 +105,9 @@ var server = app.listen(app.get('port'), function() {
 var io = require('socket.io').listen(server);
 var user_game = [];
 var questions = [];
+var room = [];
+var searching = [];
+
 Soal.find({}, function(err, soalsoal){
     if(err){
         console.log(err);
@@ -139,19 +137,20 @@ io.sockets.on('connection', function (socket) {
         update_user();
     });
 
-    function update_user(){
-        io.sockets.emit('all user', user_game.length); console.log(user_game.length);
+    function update_user(){ console.log(user_game);
+        io.sockets.emit('all user', Object.keys(user_game).length); console.log(user_game.length);
     }
 
     socket.on('register', function (data) {
         if(data.username in user_game){
-            socket.emit('auth', 0);
+            socket.emit('auth', 0); console.log('hahai');
         }
-        else{
+        else{ console.log('huhu');
             socket.username = data.username;
             socket.emit('auth', 1);
             console.log(socket.username+" connecteds");
-            user_game.push(socket.username);
+            user_game[socket.username] = socket;
+//            user_game.push(socket.username);
             socket.emit("soal", questions[idid]);
             update_user();
         }

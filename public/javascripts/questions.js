@@ -8,13 +8,12 @@ angular.module('ngAppStrictDemo', []).controller( 'control', function($scope,$ht
     $scope.input_question = '';
     $scope.input_answer = '';
     $scope.questions = [];
-    $http.get(base_url + "api/questions").success(function(response) {
+    $http.get(base_url + "api/question").success(function(response) {
         console.log(response);
         for(var i = 0; i < response.length; i++){
             $scope.questions[i] = {
                 id : i, _id: response[i]._id, question: response[i].question, answer: response[i].answer
             };
-//            $scope.questions.push(row);
         }
     });
 
@@ -38,17 +37,17 @@ angular.module('ngAppStrictDemo', []).controller( 'control', function($scope,$ht
     $scope.saveQuestion = function(){
         var data = {'question': $scope.input_question, 'answer': $scope.input_answer}
         if(current_id == 'new'){
-            $http.post(base_url + "api/questions", data).success(function(response) {
+            $http.post(base_url + "api/question", data).success(function(response) {
                 $scope.questions = [];
             });
         }
         else{
-            $http.put(base_url+"api/questions/"+$scope.questions[current_id]._id, data).success(function(response){
+            $http.put(base_url+"api/question/"+$scope.questions[current_id]._id, data).success(function(response){
                 $scope.questions = [];console.log(response);
             });
         }
 
-        $http.get(base_url + "api/questions").success(function(response) {
+        $http.get(base_url + "api/question").success(function(response) {
             for(var i = 0; i < response.length; i++){
                 $scope.questions[i] = {
                     id : i, question: response[i].question, answer: response[i].answer
@@ -68,36 +67,3 @@ angular.module('ngAppStrictDemo', []).controller( 'control', function($scope,$ht
         }
     };
 });
-
-
-
-
-
-//$(document).ready(function() {
-
-//    $.ajax({
-//        url : base_url + "api/questions",
-//        type : "GET",
-//        data : $.param({
-//            init : 'ok'
-//        }),
-//        beforeSend : function() {
-//
-//        },
-//        complete : function() {
-//
-//        },
-//        success : function(reply) {
-//            //var msg = JSON.parse(reply);
-//            console.log(reply);
-//            var content = "<table>";
-//            for(var i = 0; i < reply.length; i++){
-//                content += "<tr><td>"+reply[i].question+"</td><td>"+reply[i].answer+"</td></tr>";
-//            }
-//            content += "</table>";
-//            $('#questions').html(content);
-//        },
-//        error : function() {
-//        }
-//    });
-//});
