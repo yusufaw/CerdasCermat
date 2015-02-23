@@ -121,6 +121,8 @@ io.sockets.on('connection', function (socket) {
 
     socket.on('answer', function(data){
         if(data.answer === questions[idid].answer){
+
+            io.sockets.emit('users answer', {'username':socket.username});
             io.sockets.emit("soal", questions[++idid]);
             console.log('benar');
         }
@@ -141,7 +143,9 @@ io.sockets.on('connection', function (socket) {
         io.sockets.emit('all user', Object.keys(user_game).length); console.log(user_game.length);
     }
 
-    socket.on('register', function (data) {
+    socket.on('successlogin', function (data) {
+        console.log('bismillah');
+        console.log(data);
         if(data.username in user_game){
             socket.emit('auth', 0); console.log('hahai');
         }
