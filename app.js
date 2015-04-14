@@ -11,7 +11,7 @@ var questionsRoute = require('./routes/questions');
 
 var cors = require('cors');
 //CORS middleware
-var allowCrossDomain = function(req, res, next) {
+var allowCrossDomain = function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
     res.header('Access-Control-Allow-Headers', 'Content-Type');
@@ -27,24 +27,18 @@ app.use(bodyParser.urlencoded({
 app.use(allowCrossDomain);
 app.use(bodyParser.json());
 var dbName = 'CerdasCermat';
-var connectionString = 'mongodb://localhost:27017/'+ dbName;
+var connectionString = 'mongodb://localhost:27017/' + dbName;
 
-mongoose.connect(connectionString, function(err){
-    if(err){
+mongoose.connect(connectionString, function (err) {
+    if (err) {
         console.log(err);
     }
-    else{
+    else {
         console.log('connected to mongodb');
     }
 });
 
-
 var User = require('./models/user');
-var user = new User({
-    username: 'ucup',
-    password: 'wkwk'
-});
-
 var Soal = require('./models/question');
 
 // view engine setup
@@ -64,7 +58,7 @@ app.use('/api/user', usersRoute);
 app.use('/api/question', questionsRoute);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
     var err = new Error('Not Found');
     err.status = 404;
     next(err);
@@ -75,7 +69,7 @@ app.use(function(req, res, next) {
 // development error handler
 // will print stacktrace
 if (app.get('env') === 'development') {
-    app.use(function(err, req, res) {
+    app.use(function (err, req, res) {
         res.status(err.status || 500);
         res.render('error', {
             message: err.message,
@@ -86,7 +80,7 @@ if (app.get('env') === 'development') {
 
 // production error handler
 // no stacktraces leaked to user
-app.use(function(err, req, res) {
+app.use(function (err, req, res) {
     res.status(err.status || 500);
     res.render('error', {
         message: err.message,
@@ -98,7 +92,7 @@ var debug = require('debug')('cerdascermat');
 
 app.set('port', process.env.PORT || 3000);
 
-var server = app.listen(app.get('port'), function() {
+var server = app.listen(app.get('port'), function () {
     debug('Express server listening on port ' + server.address().port);
 });
 
@@ -106,58 +100,125 @@ var io = require('socket.io').listen(server);
 var user_game = [];
 var questions = [];
 var room = [];
-var searching = [];
+var searchingX = [];
+var searchingY = [];
 
-Soal.find({}, function(err, soalsoal){
-    if(err){
-        console.log(err);
-    }else{
-        questions = soalsoal;
-    }
-});
-var idid = 0;
 io.sockets.on('connection', function (socket) {
-    console.log("New client!");
+    console.log("New client conected");
+    var current_soal = [];
+    var ready = 0;
 
-    socket.on('answer', function(data){
-        if(data.answer === questions[idid].answer){
+    socket.on('logout', function () {
+        if (!socket.username) return;
+        delete user_game[socket.username];
+        user_game.splice(user_game.indexOf(socket.username), 1);
+    });
 
-            io.sockets.emit('users answer', {'username':socket.username});
-            io.sockets.emit("soal", questions[++idid]);
-            console.log('benar');
+    socket.on('ready', function () {
+        io.to(socket.name_room).emit("ready other", 'ok');
+    });
+
+    socket.on('answer', function (data) {
+        if(socket.tipe == 'Y'){console.log('aku Y');
+
+            if(data.answer == current_soal.answer){
+                var dt = {
+                    'isbenar': '1',
+                    'username': data.username,
+                    'answer': data.answer
+                }
+                io.to(socket.name_room).emit('result answered', dt);
+                console.log(data.username+' menjawab '+data.answer);
+                current_soal = questions[socket.name_room].shift();
+                io.to(socket.name_room).emit("soal", current_soal.question);
+            }
+            else{
+                var dt = {
+                    'isbenar': '1',
+                    'username': data.username,
+                    'answer': data.answer
+                }
+                io.to(socket.name_room).emit('result answered', dt);
+            }
         }
-        else{
-            console.log('salah');
+        else{console.log('mengirim ke '+socket.musuh.username);
+            socket.musuh.emit('other answer', data);console.log('aku X');
         }
     });
 
-    socket.on('disconnect', function(){
+    socket.on('all ready', function () {
+        if (socket.tipe == 'Y') {
+            io.to(socket.name_room).emit("soal", current_soal.question);
+        }
+    });
+
+    socket.on('search', function () {
+        if (searchingX.length > searchingY.length) {
+            searchingY.push(socket);
+            console.log('X = ' + searchingX.length);
+            console.log('Y = ' + searchingY.length);
+            var opponent = searchingX.shift();
+            socket.musuh = opponent;
+            opponent.musuh = socket;
+            var name_room = opponent.username;
+            console.log(name_room);
+            socket.join(name_room);
+            socket.name_room = name_room;
+            socket.tipe = 'Y';
+            searchingY.shift();
+            questions[name_room] = [];
+            Soal.find({}, function (err, soalsoal) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    questions[name_room] = soalsoal;
+                    console.log('kumpulan soal');
+                    //console.log(questions);
+                    current_soal = questions[name_room].shift();
+                    io.to(name_room).emit('halo', 'hello room ' + name_room);
+                }
+            });
+        }
+        else {
+            searchingX.push(socket);
+            console.log('X = ' + searchingX.length);
+            console.log('Y = ' + searchingY.length);
+            socket.tipe = 'X';
+            socket.join(socket.username);
+            socket.name_room = socket.username;
+        }
+    });
+
+    socket.on('disconnect', function () {
         console.log('user disconnect');
-        if(!socket.username) return;
+        if (!socket.username) return;
         delete user_game[socket.username];
         user_game.splice(user_game.indexOf(socket.username), 1);
         update_user();
     });
 
-    function update_user(){ console.log(user_game);
-        io.sockets.emit('all user', Object.keys(user_game).length); console.log(user_game.length);
+    function update_user() {
+        io.sockets.emit('all user', Object.keys(user_game).length);
+        console.log(user_game.length);
     }
 
     socket.on('successlogin', function (data) {
-        console.log('bismillah');
-        console.log(data);
-        if(data.username in user_game){
-            socket.emit('auth', 0); console.log('hahai');
+        if (data.username in user_game) {
+            socket.emit('auth', 0);
         }
-        else{ console.log('huhu');
+        else {
+            console.log('huhu');
             socket.username = data.username;
             socket.emit('auth', 1);
-            console.log(socket.username+" connecteds");
+            console.log(socket.username + " has login");
             user_game[socket.username] = socket;
 //            user_game.push(socket.username);
-            socket.emit("soal", questions[idid]);
+
             update_user();
         }
+    });
+    socket.on('ready wait', function(){
+       socket.emit('ready wait all', socket.musuh.username);
     });
 });
 

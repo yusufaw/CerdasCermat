@@ -61,10 +61,14 @@ router.route('/login').post(function (req, res) {
         if (err) {
             return res.send(err);
         }
-
-        for (prop in req.body) {
-            if (question[prop] != req.body[prop]) {
-                cocok = false;
+        if (question == null) {
+            cocok = false;
+        }
+        else {
+            for (prop in req.body) {
+                if (question[prop] != req.body[prop]) {
+                    cocok = false;
+                }
             }
         }
 
