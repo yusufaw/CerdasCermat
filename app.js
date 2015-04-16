@@ -119,40 +119,63 @@ io.sockets.on('connection', function (socket) {
     });
 
     socket.on('answer', function (data) {
-        if(socket.tipe == 'Y'){console.log('aku Y');
+        if (socket.tipe == 'Y') {
+            if (data.time > 1) {
+                var benar = "";
+                var tipe = "";
+                var shiftUser = "";
+                if (data.answer == current_soal.answer) {
+                    benar = '1';
+                }
+                else {
+                    benar = '0';
+                }
 
-            if(data.answer == current_soal.answer){
                 var dt = {
-                    'isbenar': '1',
+                    'isbenar': benar,
                     'username': data.username,
                     'answer': data.answer
                 }
                 io.to(socket.name_room).emit('result answered', dt);
-                console.log(data.username+' menjawab '+data.answer);
-                current_soal = questions[socket.name_room].shift();
-                io.to(socket.name_room).emit("soal", current_soal.question);
             }
             else{
-                var dt = {
-                    'isbenar': '1',
-                    'username': data.username,
-                    'answer': data.answer
-                }
-                io.to(socket.name_room).emit('result answered', dt);
+                io.to(socket.name_room).emit("timeout", data.username);
             }
+            if (data.tipe == "Y") {
+                tipe = "X";
+                shiftUser = socket.musuh.username;
+            }
+            else {
+                tipe = "Y";
+                shiftUser = socket.username;
+            }
+            current_soal = questions[socket.name_room].shift();
+            var dtQuestion = {
+                'user': shiftUser,
+                'tipe': tipe,
+                'soal': {
+                    'id': current_soal.id,
+                    'pertanyaan': current_soal.question
+                }
+            }
+            setTimeout(function () {
+                io.to(socket.name_room).emit("soal", dtQuestion);
+            }, 2000);
         }
-        else{console.log('mengirim ke '+socket.musuh.username);
-            socket.musuh.emit('other answer', data);console.log('aku X');
+        else {
+            console.log('mengirim ke ' + socket.musuh.username);
+            socket.musuh.emit('other answer', data);
+            console.log('aku X');
         }
     });
 
     socket.on('all ready', function () {
         if (socket.tipe == 'Y') {
             var data = {
-                'user' : socket.username,
+                'user': socket.username,
                 'tipe': 'Y',
                 'soal': {
-                    'id':current_soal.id,
+                    'id': current_soal.id,
                     'pertanyaan': current_soal.question
                 }
             }
@@ -160,12 +183,16 @@ io.sockets.on('connection', function (socket) {
         }
     });
 
-    socket.on('typing', function(data){
+    socket.on('typing', function (data) {
         io.to(socket.name_room).emit("typing", data);
     });
 
-    socket.on('stop typing', function(data){
+    socket.on('stop typing', function (data) {
         io.to(socket.name_room).emit("stop typing", data);
+    });
+
+    socket.on('timeout', function (data) {
+        io.to(socket.name_room).emit("timeout", data);
     });
 
     socket.on('search', function () {
@@ -233,8 +260,8 @@ io.sockets.on('connection', function (socket) {
             update_user();
         }
     });
-    socket.on('ready wait', function(){
-       socket.emit('ready wait all', socket.musuh.username);
+    socket.on('ready wait', function () {
+        socket.emit('ready wait all', socket.musuh.username);
     });
 });
 
