@@ -148,8 +148,24 @@ io.sockets.on('connection', function (socket) {
 
     socket.on('all ready', function () {
         if (socket.tipe == 'Y') {
-            io.to(socket.name_room).emit("soal", current_soal.question);
+            var data = {
+                'user' : socket.username,
+                'tipe': 'Y',
+                'soal': {
+                    'id':current_soal.id,
+                    'pertanyaan': current_soal.question
+                }
+            }
+            io.to(socket.name_room).emit("soal", data);
         }
+    });
+
+    socket.on('typing', function(data){
+        io.to(socket.name_room).emit("typing", data);
+    });
+
+    socket.on('stop typing', function(data){
+        io.to(socket.name_room).emit("stop typing", data);
     });
 
     socket.on('search', function () {
