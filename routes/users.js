@@ -7,14 +7,13 @@ var express = require('express');
 var router = express.Router();
 
 router.route('/')
-    .get(function (req, res, next) {
+    .get(function (req, res) {
         User.find(function (err, users) {
             if (err) {
                 return res.send(err);
             }
             res.json(users);
         });
-        next();
     })
     .post(function (req, res) {
         var user = new User(req.body);
@@ -42,6 +41,37 @@ router.route('/cekusername/:username').get(function (req, res) {
         }
     });
 });
+router.route('/:id').put(function(req,res){
+    User.findOne({ _id: req.params.id }, function(err, user) {
+        if (err) {
+            return res.send(err);
+        }
+
+        for (prop in req.body) {
+            user[prop] = req.body[prop];
+        }
+
+        // save the movie
+        user.save(function(err) {
+            if (err) {
+                return res.send(err);
+            }
+
+            res.json({ message: 'User updated!' });
+        });
+    });
+});
+router.route('/:id').delete(function (req, res) {
+        User.remove({
+           _id: req.params.id
+        }, function(err, user){
+            if(err){
+                return res.send(err);
+            }
+
+            res.json({message: 'Successfully deleted'});
+        });
+    });
 
 router.route('/register').post(function (req, res) {
     var user = new User(req.body);

@@ -8,60 +8,82 @@
 <body ng-app="ngAppStrictDemo" ng-controller="control">
 
 <div class="container">
-    <h1>
+    <div class="page-header"><h1>
         Welcome :)
     </h1>
-    <div class="row">
-    <button class="btn btn-success" ng-click="editQuestion('new')">
-        <span class="glyphicon glyphicon-plus"></span> Add question
-    </button>
-        </div>
-    <div class="row">
-    <div class="col-lg-8">
-    <table class="table table-striped">
-        <thead><tr>
-            <th>Edit</th>
-            <th>Question</th>
-            <th>Answer</th>
-        </tr></thead>
-        <tbody>
-        <tr ng-repeat="x in questions">
-            <td>
-                <button class="btn btn-primary" ng-click="editQuestion(x.id)">
-                    <span class="glyphicon glyphicon-pencil"></span>&nbsp;&nbsp;Edit
-                </button>
-            </td>
-            <td>{{ x.question }}</td>
-            <td>{{ x.answer }}</td>
-        </tr>
-        </tbody>
-    </table>
     </div>
 
-    <div class="col-lg-4">
-    <h3 ng-show="edit">Add Question:</h3>
-    <h3 ng-hide="edit">Edit Question:</h3>
-
-    <form class="form-horizontal">
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Question:</label>
-            <div class="col-sm-8">
-                <input type="text" ng-model="input_question" ng-disabled="!edit" placeholder="Question">
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-4 control-label">Answer:</label>
-            <div class="col-sm-8">
-                <input type="text" ng-model="input_answer" ng-disabled="!edit" placeholder="Answer">
-            </div>
-        </div>
-    </form>
-
+    <div class="row">
+        <button class="btn btn-success" ng-click="editQuestion('new')">
+            <span class="glyphicon glyphicon-plus"></span> Add question
+        </button>
+    </div>
     <hr>
-    <button class="btn btn-success" ng-disabled="incomplete" ng-click="saveQuestion()">
-        <span class="glyphicon glyphicon-save"></span> Save Changes
-    </button>
-    </div>
+    <div class="row">
+        <div class="col-lg-7">
+            <table class="table table-striped table-bordered">
+                <thead>
+
+                <th>Edit</th>
+                <th>Question</th>
+                <th>A</th>
+                <th>B</th>
+                <th>C</th>
+                <th>D</th>
+                <th>Benar</th>
+                </thead>
+                <tbody>
+                <tr ng-repeat="x in questions">
+                    <td>
+                        <button class="btn btn-primary" ng-click="editQuestion(x.id)">
+                            <span class="glyphicon glyphicon-pencil"></span>&nbsp;&nbsp;Edit
+                        </button>
+                        <br><br>
+                        <button class="btn btn-danger" ng-click="editQuestion(x.id)">
+                            <span class="glyphicon"></span>&nbsp;&nbsp;Delete
+                        </button>
+                    </td>
+                    <td>{{ x.question }}</td>
+                    <td>{{ x.A }}</td>
+                    <td>{{ x.B }}</td>
+                    <td>{{ x.C }}</td>
+                    <td>{{ x.D }}</td>
+                    <td>{{ x.benar }}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-lg-5">
+            <h3 ng-hide="edit">Add Question:</h3>
+
+            <h3 ng-show="edit">Edit Question:</h3>
+
+            <form class="form-horizontal">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Question:</label>
+
+                    <div class="col-sm-10">
+                        <textarea rows="5" style="width: 100%" class="input" ng-model="input_question"
+                                  ng-disabled="!edit"
+                                  placeholder="Question"></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Answer:</label>
+
+                    <div class="col-sm-10">
+                        <input type="text" style="width: 100%" ng-model="input_answer" ng-disabled="!edit"
+                               placeholder="Answer">
+                    </div>
+                </div>
+            </form>
+
+            <hr>
+            <button class="btn btn-success" ng-disabled="incomplete" ng-click="saveQuestion()">
+                <span class="glyphicon glyphicon-save"></span> Save Changes
+            </button>
+        </div>
     </div>
 </div>
 <script src="javascripts/questions.js"></script>

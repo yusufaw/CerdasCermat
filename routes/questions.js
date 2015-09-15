@@ -8,7 +8,7 @@ var router = express.Router();
 
 router.route('/')
     .get(function(req, res) {
-        Question.find(function(err, questions) {
+        Question.find().exec(function(err, questions) {
             if (err) {
                 return res.send(err);
             }
