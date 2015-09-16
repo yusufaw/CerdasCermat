@@ -105,7 +105,7 @@ var room = [];
 var searchingX = [];
 var searchingY = [];
 
-
+io.set('origins', '*');
 io.sockets.on('connection', function (socket) {
     console.log("New client conected");
     var current_soal = [];
