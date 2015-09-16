@@ -26,8 +26,9 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(allowCrossDomain);
 app.use(bodyParser.json());
-var dbName = 'CerdasCermat';
-var connectionString = 'mongodb://localhost:27017/' + dbName;
+var dbName = 'cerdascermat';
+//var connectionString = 'mongodb://localhost:27017/' + dbName;
+var connectionString = 'mongodb://ucup:segeralulus@ds041613.mongolab.com:41613/cerdascermat';
 
 mongoose.connect(connectionString, function (err) {
     if (err) {
@@ -401,7 +402,7 @@ io.sockets.on('connection', function (socket) {
                     counterBabak3++;
                     setTimeout(function () {
                         console.log('babak 3 lanjut');
-                        io.to(socket.name_room).emit('babak 3 lanjut', 'ok');
+                        //io.to(socket.name_room).emit('babak 3 lanjut', 'ok');
                     }, 2000);
 
                 } else {
