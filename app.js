@@ -106,6 +106,10 @@ var searchingX = [];
 var searchingY = [];
 
 io.set('origins', '*');
+io.configure(function () {
+    io.set("transports", ["xhr-polling"]);
+    io.set("polling duration", 10);
+});
 io.sockets.on('connection', function (socket) {
     console.log("New client conected");
     var current_soal = [];
