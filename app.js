@@ -8,6 +8,7 @@ var mongoose = require('mongoose');
 var routes = require('./routes/index');
 var usersRoute = require('./routes/users');
 var questionsRoute = require('./routes/questions');
+var matchRoute = require('./routes/match');
 
 var cors = require('cors');
 //CORS middleware
@@ -26,9 +27,9 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(allowCrossDomain);
 app.use(bodyParser.json());
-var dbName = 'cerdascermat';
-//var connectionString = 'mongodb://localhost:27017/' + dbName;
-var connectionString = 'mongodb://ucup:segeralulus@ds041613.mongolab.com:41613/cerdascermat';
+var dbName = 'CerdasCermat';
+var connectionString = 'mongodb://localhost:27017/' + dbName;
+//var connectionString = 'mongodb://ucup:segeralulus@ds041613.mongolab.com:41613/cerdascermat';
 
 mongoose.connect(connectionString, function (err) {
     if (err) {
@@ -40,6 +41,7 @@ mongoose.connect(connectionString, function (err) {
 });
 var Soal = require('./models/question');
 var User = require('./models/user');
+var Match = require('./models/match');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -56,6 +58,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', routes);
 app.use('/api/user', usersRoute);
 app.use('/api/question', questionsRoute);
+app.use('/api/match', matchRoute);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -104,18 +107,27 @@ var questionsBabak3 = [];
 var room = [];
 var searchingX = [];
 var searchingY = [];
-
-io.set('origins', '*');
-io.configure(function () {
-    io.set("transports", ["xhr-polling"]);
-    io.set("polling duration", 10);
-});
+//
+//io.set('origins', '*');
+//io.configure(function () {
+//    io.set("transports", ["xhr-polling"]);
+//    io.set("polling duration", 10);
+//});
 io.sockets.on('connection', function (socket) {
     console.log("New client conected");
     var current_soal = [];
     var ready = 0;
     var counterBabak2 = 1;
     var counterBabak3 = 1;
+    var jumlahTotalSoal = 18;
+    var jmlSoal1 = 2;
+    var jmlSoal2 = 8;
+    var jmlSoal3 = 16;
+    var jmlSoalPilih2 = 2;
+    var jmlSoalPilih3 = 2;
+    var penambahanBabak1 = 10;
+    var penambahanBabak2 = 20;
+    var penambahanBabak3 = 30;
 
     function checkSecurity() {
         if (!socket.username) {
@@ -140,10 +152,7 @@ io.sockets.on('connection', function (socket) {
             var data = {
                 'user': socket.username,
                 'tipe': 'Y',
-                'soal': {
-                    'id': current_soal.id,
-                    'pertanyaan': current_soal.question
-                }
+                'soal': current_soal
             };
             console.log('giliran pertama babak 1 ' + socket.username + " dengan tipe " + socket.tipe);
             io.to(socket.name_room).emit("soal babak 1", data);
@@ -173,40 +182,47 @@ io.sockets.on('connection', function (socket) {
 
     socket.on('answer babak 1', function (data) {
         if (socket.tipe == 'Y') {
-            if (data.time > 1) {
+            if (data.time > 1 && data.answer != 'noFight' && data.answer != 'noAnswer') {
                 var benar = "";
                 var tipe = "";
                 var shiftUser = "";
-                if (data.answer.toLowerCase() == current_soal.answer.toLowerCase()) {
-                    benar = '1';
-                    var poin;
-                    if (data.username == socket.username) {
-                        poin = socket.poin = socket.poin + 10;
+                Soal.find({'_id': data._id}).exec(function (err, bX) {
+                    if (err) {
+                        console.log(err);
                     }
                     else {
-                        poin = socket.musuh.poin = socket.musuh.poin + 10;
-                    }
-                }
-                else {
-                    benar = '0';
-                    if (data.username == socket.username) {
-                        poin = socket.poin;
-                    }
-                    else {
-                        poin = socket.musuh.poin;
-                    }
-                }
+                        if (bX[0].answer == data.answer) {
+                            benar = '1';
+                            var poin;
+                            if (data.username == socket.username) {
+                                poin = socket.poin = socket.poin + penambahanBabak1;
+                            }
+                            else {
+                                poin = socket.musuh.poin = socket.musuh.poin + penambahanBabak1;
+                            }
+                        }
+                        else {
+                            benar = '0';
+                            if (data.username == socket.username) {
+                                poin = socket.poin;
+                            }
+                            else {
+                                poin = socket.musuh.poin;
+                            }
+                        }
 
-                var dt = {
-                    'isbenar': benar,
-                    'username': data.username,
-                    'answer': data.answer,
-                    'poin': poin
-                };
-                io.to(socket.name_room).emit('result answered babak 1', dt);
+                        var dt = {
+                            'isbenar': benar,
+                            'username': data.username,
+                            'answer': data.answer,
+                            'poin': poin
+                        };
+                        io.to(socket.name_room).emit('result answered babak 1', dt);
+                    }
+                });
             }
             else {
-                io.to(socket.name_room).emit("timeout", data.username);
+                io.to(socket.name_room).emit("noAnswer", data.username);
             }
             if (data.tipe == "Y") {
                 tipe = "X";
@@ -217,32 +233,30 @@ io.sockets.on('connection', function (socket) {
                 shiftUser = socket;
             }
             if (questions[socket.name_room].length >= 1) {
-                current_soal = questions[socket.name_room].shift();
-                var dtQuestion = {
-                    'user': shiftUser.username,
-                    'tipe': tipe,
-                    'soal': {
-                        'id': current_soal.id,
-                        'pertanyaan': current_soal.question
-                    }
-                }
                 setTimeout(function () {
+                    current_soal = questions[socket.name_room].shift();
+                    var dtQuestion = {
+                        'user': shiftUser.username,
+                        'tipe': tipe,
+                        'soal': current_soal
+                    };
                     console.log('mengirim soal babak 1 ke ' + dtQuestion.user);
                     io.to(socket.name_room).emit("soal babak 1", dtQuestion);
                 }, 2000);
             }
             else {
-                var dtBabak1 = [
-                    {
-                        'username': socket.username,
-                        'poin': socket.poin
-                    },
-                    {
-                        'username': socket.musuh.username,
-                        'poin': socket.musuh.poin
-                    }
-                ];
+
                 setTimeout(function () {
+                    var dtBabak1 = [
+                        {
+                            'username': socket.username,
+                            'poin': socket.poin
+                        },
+                        {
+                            'username': socket.musuh.username,
+                            'poin': socket.musuh.poin
+                        }
+                    ];
                     io.to(socket.name_room).emit("babak 1 done", dtBabak1);
                 }, 2000);
             }
@@ -257,39 +271,54 @@ io.sockets.on('connection', function (socket) {
         if (socket.tipe == 'X') {
             var poin = 0;
             var benar = "";
+            var unm = '';
             //bonus meant that user not choose a question
-            if (data.answer == 'bonus') {
+            if (data.answer == 'noChoose') {
                 benar = 1;
                 if (data.username == socket.username) {
-                    poin = socket.poin = socket.poin + 20;
+                    poin = socket.musuh.poin = socket.musuh.poin + penambahanBabak2;
+                    unm = socket.musuh.username;
                 }
                 else {
-                    poin = socket.musuh.poin = socket.musuh.poin + 20;
+                    poin = socket.poin = socket.poin + penambahanBabak2;
+                    unm = socket.username;
                 }
-                ok();
+
+                var dt = {
+                    'username': unm,
+                    'u': data.username,
+                    'answer': data.answer,
+                    'poin': poin
+                };
+                console.log(dt);
+                io.to(socket.name_room).emit('noChoose', dt);
             }
             else {
                 Soal.find({'_id': data._id}).exec(function (err, soalsoal) {
-                    console.log(data.answer.toLowerCase() + ' = ' + soalsoal[0].answer.toLowerCase());
-                    if (data.answer.toLowerCase() == soalsoal[0].answer.toLowerCase()) {
-                        benar = 1;
-                        if (data.username == socket.username) {
-                            poin = socket.poin = socket.poin + 20;
-                        }
-                        else {
-                            poin = socket.musuh.poin = socket.musuh.poin + 20;
-                        }
-                        ok();
+                    if (err) {
+                        console.log(err);
                     }
                     else {
-                        benar = 0;
-                        if (data.username == socket.username) {
-                            poin = socket.poin;
+                        if (data.answer == soalsoal[0].answer) {
+                            benar = 1;
+                            if (data.username == socket.username) {
+                                poin = socket.poin = socket.poin + penambahanBabak2;
+                            }
+                            else {
+                                poin = socket.musuh.poin = socket.musuh.poin + penambahanBabak2;
+                            }
+                            ok();
                         }
                         else {
-                            poin = socket.musuh.poin;
+                            benar = 0;
+                            if (data.username == socket.username) {
+                                poin = socket.poin;
+                            }
+                            else {
+                                poin = socket.musuh.poin;
+                            }
+                            ok();
                         }
-                        ok();
                     }
                 });
             }
@@ -305,7 +334,7 @@ io.sockets.on('connection', function (socket) {
                 io.to(socket.name_room).emit('result answered babak 2', dt);
             }
 
-            if (counterBabak2 < 2) {
+            if (counterBabak2 < jmlSoalPilih2) {
                 console.log("sebelum = " + counterBabak2);
                 counterBabak2++;
                 console.log("sesudah = " + counterBabak2);
@@ -356,18 +385,17 @@ io.sockets.on('connection', function (socket) {
     socket.on('answer babak 3', function (data) {
         if (checkSecurity()) {
             if (socket.tipe == 'X') {
-
                 if (data.time > 1 && data.answer != 'noFight' && data.answer != 'noAnswer') {
-                    Soal.find({'_id': data._id}, {'benar': 1}).exec(function (err, bX) {
+                    Soal.find({'_id': data._id}).exec(function (err, bX) {
                         var benar = "";
-                        if (data.answer == bX.benar) {
+                        if (data.answer == bX[0].answer) {
                             benar = '1';
                             var poin;
                             if (data.username == socket.username) {
-                                poin = socket.poin = socket.poin + 10;
+                                poin = socket.poin = socket.poin + penambahanBabak3;
                             }
                             else {
-                                poin = socket.musuh.poin = socket.musuh.poin + 10;
+                                poin = socket.musuh.poin = socket.musuh.poin + penambahanBabak3;
                             }
                         }
                         else {
@@ -387,12 +415,15 @@ io.sockets.on('connection', function (socket) {
                             'poin': poin,
                             'no': data.no
                         };
-                        io.to(socket.name_room).emit('result answered babak 3', dt);
 
+                        console.log('poin ku(' + socket.musuh.username + ') : ' + socket.poin);
+                        console.log('poin musuh (' + socket.musuh.username + ') : ' + socket.musuh.poin);
+                        io.to(socket.name_room).emit('result answered babak 3', dt);
                     });
                 }
                 else {
                     if (data.answer === 'noFight') {
+                        console.log('no fight');
                         io.to(socket.name_room).emit("noFight", data.username);
                     }
                     else if (data.answer === 'noAnswer') {
@@ -402,26 +433,40 @@ io.sockets.on('connection', function (socket) {
                         io.to(socket.name_room).emit("noAnswer", data.username);
                     }
                 }
-                if (counterBabak3 < 10) {
+                if (counterBabak3 < jmlSoalPilih3) {
                     counterBabak3++;
                     setTimeout(function () {
                         console.log('babak 3 lanjut');
-                        //io.to(socket.name_room).emit('babak 3 lanjut', 'ok');
+                        io.to(socket.name_room).emit('babak 3 lanjut', 'ok');
                     }, 2000);
-
                 } else {
-                    var dtBabak3 = [
-                        {
-                            'username': socket.username,
-                            'poin': socket.poin
-                        },
-                        {
-                            'username': socket.musuh.username,
-                            'poin': socket.musuh.poin
-                        }
-                    ];
+
+
+                    console.log('poin akhir ku(' + socket.musuh.username + ') : ' + socket.poin);
+                    console.log('poin akhir musuh (' + socket.musuh.username + ') : ' + socket.musuh.poin);
+
                     setTimeout(function () {
-                        console.log('babak selesai');
+                        var mm = new Match();
+                        mm.u = [socket.username, socket.musuh.username];
+                        mm.p = [socket.poin, socket.musuh.poin];
+                        mm.save(function (err, ok) {
+                            if(err){
+                                console.log('Error : '+err);
+                            }
+                            else{
+                                console.log('Data game tersimpan');
+                            }
+                        });
+                        var dtBabak3 = [
+                            {
+                                'username': socket.username,
+                                'poin': socket.poin
+                            },
+                            {
+                                'username': socket.musuh.username,
+                                'poin': socket.musuh.poin
+                            }
+                        ];
                         io.to(socket.name_room).emit("babak 3 done", dtBabak3);
                     }, 2000);
                 }
@@ -446,25 +491,47 @@ io.sockets.on('connection', function (socket) {
     socket.on('all ready babak 2', function () {
         console.log('aku ' + socket.username + ' dengan tipe ' + socket.tipe + ' all ready babak 2');
         if (socket.tipe == 'X') {
-            socket.poin = 0;
-            socket.musuh.poin = 0;
-            Soal.find().limit(6).exec(function (err, soalsoal) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    questionsBabak2[socket.name_room] = soalsoal;
-                    var data = {
-                        'user': socket.musuh.username,
-                        'tipe': 'X',
-                        'soal': questionsBabak2[socket.name_room]
-                    }
-                    //socket.emit("pilihan soal", soalsoal);
-                    console.log('aku ' + socket.username + ' dengan tipe ' + socket.tipe + ' mengirim pilihan soal');
-
-                    io.to(socket.name_room).emit('pilihan soal', data);
-                }
-                ;
+            //socket.poin = 0;
+            //socket.musuh.poin = 0;
+            questionsBabak2[socket.name_room] = [];
+            var numbers = [];
+            for (var x = 0; x < jumlahTotalSoal; x++) {
+                numbers.push(x);
+            }
+            numbers.sort(function () {
+                return 0.5 - Math.random()
             });
+            var funcs = [];
+            var tempQuestion2 = [];
+
+            function createfunc(i) {
+                return function () {
+                    Soal.find({'no': numbers[i]}, {'answer': 0}).exec(function (err, soalsoal) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            tempQuestion2.push(soalsoal[0]);
+                            if (tempQuestion2.length == jmlSoal2) {
+                                questionsBabak2[socket.name_room] = tempQuestion2;
+                                var data = {
+                                    'user': socket.musuh.username,
+                                    'tipe': 'X',
+                                    'soal': questionsBabak2[socket.name_room]
+                                };
+                                io.to(socket.name_room).emit('pilihan soal', data);
+                            }
+                        }
+                    });
+                }
+            }
+
+            for (var c = 0; c < jmlSoal2; c++) {
+                funcs[c] = createfunc(c);
+            }
+            for (var d = 0; d < jmlSoal2; d++) {
+                funcs[d]();
+            }
+
         }
     });
 
@@ -480,11 +547,11 @@ io.sockets.on('connection', function (socket) {
 
     socket.on('all ready babak 3', function (data) {
         if (socket.tipe == 'X') {
-            socket.poin = 0;
-            socket.musuh.poin = 0;
+            //socket.poin = 0;
+            //socket.musuh.poin = 0;
             var numbers = [];
             questionsBabak3[socket.name_room] = [];
-            for (var x = 0; x < 18; x++) {
+            for (var x = 0; x < jmlSoal3; x++) {
                 numbers.push(x);
             }
 
@@ -496,29 +563,30 @@ io.sockets.on('connection', function (socket) {
 
             function createfunc(i) {
                 return function () {
-                    Soal.find({'no': numbers[i]}, {'benar': 0}).exec(function (err, soalsoal) {
+                    Soal.find({'no': numbers[i]}, {'answer': 0}).exec(function (err, soalsoal) {
                         if (err) {
                             console.log(err);
                         }
                         else {
                             tempQuestion3.push(soalsoal[0]);
-                            if (tempQuestion3.length == 16) {
+                            if (tempQuestion3.length == jmlSoal3) {
                                 var data = {
                                     'user': socket.username,
                                     'tipe': 'X',
                                     'soal': tempQuestion3
                                 };
                                 io.to(socket.name_room).emit('grid soal', data);
+                                //console.log(data);
                             }
                         }
                     });
                 };
             }
 
-            for (var c = 0; c < 16; c++) {
+            for (var c = 0; c < jmlSoal3; c++) {
                 funcs[c] = createfunc(c);
             }
-            for (var d = 0; d < 16; d++) {
+            for (var d = 0; d < jmlSoal3; d++) {
                 funcs[d]();
             }
         }
@@ -531,13 +599,22 @@ io.sockets.on('connection', function (socket) {
         socket.musuh.emit('buka musuh', data);
     });
 
+    socket.on('jawaban babak 1', function (data) {
+        socket.musuh.emit('jawaban babak 1', data);
+    });
+
+    socket.on('jawaban babak 2', function (data) {
+        socket.musuh.emit('jawaban babak 2', data);
+    });
+
+    socket.on('jawaban babak 3', function (data) {
+        socket.musuh.emit('jawaban babak 3', data);
+    });
+
     socket.on('pertanyaan pilihan', function (data) {
         var dtQuestion = {
             'user': socket.musuh.username,
-            'soal': {
-                'id': questionsBabak2[socket.name_room][data]._id,
-                'pertanyaan': questionsBabak2[socket.name_room][data].question
-            }
+            'soal': questionsBabak2[socket.name_room][data]
         };
         questionsBabak2[socket.name_room].splice(data, 1);
         console.log('mengirim pertanyaan ke musuh');
@@ -587,25 +664,48 @@ io.sockets.on('connection', function (socket) {
                 socket.tipe = 'Y';
                 searchingY.shift();
                 questions[name_room] = [];
-                Soal.find().limit(2).exec(function (err, soalsoal) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        questions[name_room] = soalsoal;
-                        //console.log('kumpulan soal');
-                        //console.log(questions);
-                        current_soal = questions[name_room].shift();
-                        console.log('hello room dari ' + socket.username);
-                        io.to(name_room).emit('halo', 'hello room ' + name_room);
-                    }
+                var numbers = [];
+                for (var x = 0; x < jumlahTotalSoal; x++) {
+                    numbers.push(x);
+                }
+                numbers.sort(function () {
+                    return 0.5 - Math.random()
                 });
+                var funcs = [];
+                var tempQuestion1 = [];
+
+                function createfunc(i) {
+                    return function () {
+                        Soal.find({'no': numbers[i]}, {'answer': 0}).exec(function (err, soalsoal) {
+                            if (err) {
+                                console.log(err);
+                            } else {
+                                tempQuestion1.push(soalsoal[0]);
+                                if (tempQuestion1.length == jmlSoal1) {
+                                    questions[name_room] = tempQuestion1;
+                                    current_soal = questions[name_room].shift();
+                                    console.log('hello room dari ' + socket.username);
+                                    io.to(name_room).emit('halo', 'hello room ' + name_room);
+                                }
+                            }
+                        });
+                    }
+                }
+
+                for (var c = 0; c < jmlSoal1; c++) {
+                    funcs[c] = createfunc(c);
+                }
+                for (var d = 0; d < jmlSoal1; d++) {
+                    funcs[d]();
+                }
+
+
+
             }
             else {
-
                 searchingX.push(socket);
                 console.log('X = ' + searchingX.length);
                 console.log('Y = ' + searchingY.length);
-
                 socket.tipe = 'X';
                 socket.join(socket.username);
                 socket.name_room = socket.username;
@@ -652,11 +752,10 @@ io.sockets.on('connection', function (socket) {
 
     socket.on('game done', function (data) {
         console.log('game done : ' + data);
+        questions[socket.name_room] = undefined;
         socket.leave(socket.name_room);
-        //setTimeout(function(){console.log('sending cek aja');
-        //
-        //}, 15000);
-        //io.to(socket.name_room).emit('cek aja', 'ok');
+        counterBabak2 = 1;
+        counterBabak3 = 1;
         socket.name_room = undefined;
         socket.musuh = undefined;
         socket.poin = 0;
