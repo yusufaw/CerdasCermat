@@ -28,8 +28,8 @@ app.use(bodyParser.urlencoded({
 app.use(allowCrossDomain);
 app.use(bodyParser.json());
 var dbName = 'CerdasCermat';
-var connectionString = 'mongodb://localhost:27017/' + dbName;
-//var connectionString = 'mongodb://ucup:segeralulus@ds041613.mongolab.com:41613/cerdascermat';
+// var connectionString = 'mongodb://localhost:27017/' + dbName;
+var connectionString = 'mongodb://ucup:segeralulus@ds041613.mongolab.com:41613/cerdascermat';
 
 mongoose.connect(connectionString, function (err) {
     if (err) {
