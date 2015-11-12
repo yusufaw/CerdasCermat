@@ -92,6 +92,7 @@ app.use(function (err, req, res) {
     });
 });
 var io = require('socket.io').listen(sX);
+io.set("origins","*");
 var debug = require('debug')('cerdascermat');
 sX.listen(process.env.PORT || 3000);
 app.set('port', process.env.PORT || 3000);
