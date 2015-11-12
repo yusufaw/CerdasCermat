@@ -28,7 +28,7 @@ app.use(bodyParser.urlencoded({
 app.use(allowCrossDomain);
 app.use(bodyParser.json());
 var dbName = 'CerdasCermat';
-// var connectionString = 'mongodb://localhost:27017/' + dbName;
+//var connectionString = 'mongodb://localhost:27017/' + dbName;
 var connectionString = 'mongodb://ucup:segeralulus@ds041613.mongolab.com:41613/cerdascermat';
 
 mongoose.connect(connectionString, function (err) {
@@ -93,7 +93,7 @@ app.use(function (err, req, res) {
 
 var debug = require('debug')('cerdascermat');
 
-app.set('port', process.env.PORT || 5000);
+app.set('port', process.env.PORT || 3000);
 
 var server = app.listen(app.get('port'), function () {
     debug('Express server listening on port ' + server.address().port);
