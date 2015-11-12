@@ -26,7 +26,7 @@ var sX = require('http').createServer(app);
 app.use(bodyParser.urlencoded({
     extended: true
 }));
-app.use(allowCrossDomain);
+
 app.use(bodyParser.json());
 var dbName = 'CerdasCermat';
 //var connectionString = 'mongodb://localhost:27017/' + dbName;
@@ -96,7 +96,7 @@ io.set("origins","*");
 var debug = require('debug')('cerdascermat');
 sX.listen(process.env.PORT || 3000);
 app.set('port', process.env.PORT || 3000);
-
+app.use(allowCrossDomain);
 //var server = app.listen(app.get('port'), function () {
 //    console.log('Express server listening on port ' + server.address().port);
 //});
