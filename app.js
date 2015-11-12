@@ -13,7 +13,7 @@ var matchRoute = require('./routes/match');
 var cors = require('cors');
 //CORS middleware
 var allowCrossDomain = function (req, res, next) {
-    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Origin', '*:*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
     res.header('Access-Control-Allow-Headers', 'X-Requested-With,Content-Type');
 
@@ -91,8 +91,8 @@ app.use(function (err, req, res) {
         error: {}
     });
 });
-var io = require('socket.io').listen(sX);
-io.set("origins","*");
+var io = require('socket.io').listen(sX, { origins: '*:*' });
+io.set("origins","*:*");
 var debug = require('debug')('cerdascermat');
 sX.listen(process.env.PORT || 3000);
 app.set('port', process.env.PORT || 3000);
