@@ -23,6 +23,7 @@ var allowCrossDomain = function (req, res, next) {
 
 var app = express();
 
+app.use(allowCrossDomain);
 //app.use(cors);
 app.use(bodyParser.urlencoded({
     extended: true
@@ -93,12 +94,11 @@ app.use(function (err, req, res) {
     });
 });
 
-app.use(allowCrossDomain);
 var debug = require('debug')('cerdascermat');
 var sX = require('http').createServer(app);
 sX.listen(process.env.PORT || 3000);
 //app.set('port', process.env.PORT || 3000);
-var io = require('socket.io').listen(sX, { origins: '*:*' });
+var io = require('socket.io').listen(sX, {log:false,  origins: '*:*' });
 io.set("origins","*:*");
 //var server = app.listen(app.get('port'), function () {
 //    console.log('Express server listening on port ' + server.address().port);
