@@ -73,12 +73,12 @@ router.route('/:id').delete(function (req, res) {
         });
     });
 
-router.route('/register').post(function (req, res) {
+router.route('/daftar').post(function (req, res) {
     var user = new User(req.body);
 
     user.save(function (err) {
         if (err) {
-            return res.send(err);
+            return res.send('0');
         }
 
         res.send('1');
