@@ -9,8 +9,10 @@ var routes = require('./routes/index');
 var usersRoute = require('./routes/users');
 var questionsRoute = require('./routes/questions');
 var matchRoute = require('./routes/match');
-
+var multer = require('multer');
+var upload      =   multer({ dest: './uploads/'});
 var cors = require('cors');
+
 //CORS middleware
 var allowCrossDomain = function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
@@ -22,6 +24,19 @@ var allowCrossDomain = function (req, res, next) {
 };
 
 var app = express();
+
+app.use(multer({ dest: './img/',
+    rename: function (fieldname, filename) {
+        return filename+Date.now();
+    },
+    onFileUploadStart: function (file) {
+        console.log(file.originalname + ' is starting ...');
+    },
+    onFileUploadComplete: function (file) {
+        console.log(file.fieldname + ' uploaded to  ' + file.path)
+    }
+}));
+
 app.use(cors());
 
 app.use(allowCrossDomain);
@@ -63,6 +78,14 @@ app.use('/', routes);
 app.use('/api/user', usersRoute);
 app.use('/api/question', questionsRoute);
 app.use('/api/match', matchRoute);
+app.post('/api/photo',function(req,res){
+    upload(req,res,function(err) {
+        if(err) {
+            return res.end("Error uploading file.");
+        }
+        res.end("File is uploaded");
+    });
+});
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
