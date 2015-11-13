@@ -14,7 +14,7 @@ var cors = require('cors');
 //CORS middleware
 var allowCrossDomain = function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Origin', 'http://'+req.headers.host+':8100');
+    //res.header('Access-Control-Allow-Origin', 'http://'+req.headers.host+':8100');
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
     res.header('Access-Control-Allow-Headers', 'X-Requested-With,Content-Type');
 
