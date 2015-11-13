@@ -89,7 +89,7 @@ router.route('/login').post(function (req, res, next) {
     console.log('hehe login');
     var cocok = true;
     var uN = req.body.username;
-    User.findOne({ username:  uN.toLowerCase()}, function (err, question) {
+    User.findOne({ username:  uN}, function (err, question) {
         if (err) {
             return res.send(err);
         }
