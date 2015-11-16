@@ -49,6 +49,8 @@ var Soal = require('./models/question');
 var User = require('./models/user');
 var Match = require('./models/match');
 
+
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -129,6 +131,11 @@ io.sockets.on('connection', function (socket) {
     var penambahanBabak2 = 20;
     var penambahanBabak3 = 30;
 
+    Soal.count({}, function(err, c) {
+        console.log('Count is ' + c);
+        jumlahTotalSoal = c;
+    });
+
     function checkSecurity() {
         if (!socket.username) {
             socket.emit('logout', 'oyi');
@@ -196,11 +203,7 @@ io.sockets.on('connection', function (socket) {
                     return 0.5 - Math.random()
                 });
                 var funcBabak1 = [];
-                var funcBabak2 = [];
-                var funcBabak3 = [];
                 var tempQuestion1 = [];
-                var tempQuestion2 = [];
-                var tempQuestion3 = [];
 
                 function createBabak1(i) {
                     return function () {
@@ -220,72 +223,12 @@ io.sockets.on('connection', function (socket) {
                     }
                 }
 
-                function createBabak2(i) {
-                    return function () {
-                        Soal.find({'no': numbers[i]}, {'answer': 0}).exec(function (err, soalsoal) {
-                            if (err) {
-                                console.log(err);
-                            } else {
-                                tempQuestion2.push(soalsoal[0]);
-                                if (tempQuestion2.length == jmlSoal2) {
-                                    questionsBabak2[socket.name_room] = tempQuestion2;
-                                    var data = {
-                                        'user': socket.musuh.username,
-                                        'tipe': 'X',
-                                        'soal': questionsBabak2[socket.name_room]
-                                    };
-                                    io.to(socket.name_room).emit('pilihan soal', data);
-                                }
-                            }
-                        });
-                    }
-                }
-
-                function createBabak3(i) {
-                    return function () {
-                        Soal.find({'no': numbers[i]}, {'answer': 0}).exec(function (err, soalsoal) {
-                            if (err) {
-                                console.log(err);
-                            } else {
-                                tempQuestion3.push(soalsoal[0]);
-                                if (tempQuestion3.length == jmlSoal3) {
-                                    var data = {
-                                        'user': socket.username,
-                                        'tipe': 'X',
-                                        'soal': tempQuestion3
-                                    };
-                                    io.to(socket.name_room).emit('grid soal', data);
-                                    //console.log(data);
-                                }
-                            }
-                        });
-                    }
-                }
-
                 for (var c = 0; c < jmlSoal1; c++) {
                     funcBabak1[c] = createBabak1(c);
-                    //if (c < jmlSoal1) {
-                    //    funcBabak1[c] = createBabak1(c);
-                    //}
-                    //else if (c >= jmlSoal1 && c < jmlSoal2) {
-                    //    funcBabak2[c] = createBabak2(c);
-                    //}
-                    //else if (c >= jmlSoal2 && c < jmlSoal3) {
-                    //    funcBabak3[c] = createBabak3(c);
-                    //}
 
                 }
                 for (var d = 0; d < jmlSoal1; d++) {
                     funcBabak1[d]();
-                    //if (d < jmlSoal1) {
-                    //    funcBabak1[d]();
-                    //}
-                    //else if (d >= jmlSoal1 && d < jmlSoal2) {
-                    //    funcBabak2[c]();
-                    //}
-                    //else if (d >= jmlSoal2 && d < jmlSoal3) {
-                    //    funcBabak3[d]();
-                    //}
                 }
 
 
